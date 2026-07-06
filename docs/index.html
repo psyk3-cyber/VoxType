@@ -219,8 +219,8 @@ footer a:hover { color: var(--text); }
       <a class="btn ghost" href="https://github.com/psyk3-cyber/VoxType#build-from-source">Build from source</a>
     </div>
     <div class="gatekeeper">
-      <strong>First launch:</strong> VoxType isn't notarized by Apple (it's a free community app), so macOS will warn you.
-      Right-click <strong>VoxType.app</strong> → <strong>Open</strong> → <strong>Open</strong>. You only do this once.
+      <strong>First launch:</strong> macOS will say it "could not verify VoxType is free of malware" — that's because VoxType isn't notarized by Apple (it's a free community app).
+      Click <strong>Done</strong>, then open <strong>System Settings → Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong> next to VoxType. You only do this once.
       Or in Terminal: <code>xattr -dr com.apple.quarantine /Applications/VoxType.app</code>
     </div>
   </div>
