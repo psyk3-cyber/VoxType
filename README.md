@@ -2,7 +2,7 @@
 
 Free, open-source voice typing for macOS: hold a key, speak, and polished text appears in whatever app you're using. Menu-bar only, works in every text field on your Mac. Inspired by [Wispr Flow](https://wisprflow.ai) — no account, no subscription, private by design.
 
-**Website:** https://voxtype.psyk3.com/ · **Download DMG:** [latest release](https://github.com/psyk3-cyber/VoxType/releases/latest)
+**Website:** https://psyk3.com/ · **Download DMG:** [latest release](https://github.com/psyk3-cyber/VoxType/releases/latest)
 
 > **First launch (DMG users):** VoxType isn't notarized. Right-click **VoxType.app → Open → Open** once, or run `xattr -dr com.apple.quarantine /Applications/VoxType.app`.
 
