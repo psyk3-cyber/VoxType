@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoxType — Voice typing for your Mac</title>
+<meta name="description" content="VoxType is a free, open-source voice dictation app for macOS. Hold a key, speak, release — polished text appears in any app. 100% native, private by design.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23635BFF'/><stop offset='1' stop-color='%232EC4B6'/></linearGradient></defs><rect x='5' y='5' width='90' height='90' rx='22' fill='url(%23g)'/><g fill='white'><rect x='22' y='42' width='5' height='16' rx='2.5'/><rect x='31' y='34' width='5' height='32' rx='2.5'/><rect x='40' y='26' width='5' height='48' rx='2.5'/><rect x='49' y='38' width='5' height='24' rx='2.5'/><rect x='58' y='22' width='5' height='56' rx='2.5'/><rect x='67' y='32' width='5' height='36' rx='2.5'/><rect x='76' y='44' width='5' height='12' rx='2.5'/></g></svg>">
+<style>
+:root {
+  --indigo: #635BFF;
+  --teal: #2EC4B6;
+  --bg: #0B0B14;
+  --bg2: #12121F;
+  --card: #171728;
+  --text: #EDEDF4;
+  --muted: #9C9CB0;
+  --border: rgba(255,255,255,0.08);
+  --grad: linear-gradient(135deg, var(--indigo), var(--teal));
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--teal); text-decoration: none; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+/* Nav */
+nav {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(11,11,20,0.8); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text); }
+.logo svg { width: 28px; height: 28px; }
+nav .links { display: flex; gap: 24px; align-items: center; font-size: 14px; }
+nav .links a { color: var(--muted); }
+nav .links a:hover { color: var(--text); }
+nav .links a.btn { color: #fff; }
+
+/* Buttons */
+.btn {
+  display: inline-block; padding: 12px 24px; border-radius: 12px;
+  background: var(--grad); color: #fff; font-weight: 600; font-size: 15px;
+  transition: transform .15s, box-shadow .15s;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,91,255,0.35); }
+.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn.ghost:hover { box-shadow: none; border-color: var(--muted); }
+nav .btn { padding: 8px 16px; font-size: 14px; }
+
+/* Hero */
+.hero { text-align: center; padding: 96px 0 72px; position: relative; overflow: hidden; }
+.hero::before {
+  content: ""; position: absolute; inset: -40% -20% auto;  height: 130%;
+  background: radial-gradient(ellipse at 30% 20%, rgba(99,91,255,0.18), transparent 55%),
+              radial-gradient(ellipse at 70% 10%, rgba(46,196,182,0.14), transparent 55%);
+  pointer-events: none;
+}
+.hero > * { position: relative; }
+.hero .icon { width: 96px; height: 96px; margin-bottom: 28px; filter: drop-shadow(0 12px 40px rgba(99,91,255,0.4)); }
+.hero h1 { font-size: clamp(36px, 6vw, 60px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.hero h1 .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p.sub { max-width: 620px; margin: 20px auto 36px; font-size: 19px; color: var(--muted); }
+.hero .ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.hero .fineprint { margin-top: 18px; font-size: 13px; color: var(--muted); }
+
+/* Demo strip */
+.demo {
+  max-width: 720px; margin: 64px auto 0; padding: 28px 32px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+  text-align: left; font-size: 15px;
+}
+.demo .row { display: flex; align-items: center; gap: 14px; padding: 10px 0; }
+.demo .key {
+  flex-shrink: 0; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg2); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; color: var(--teal);
+}
+.demo .row span:last-child { color: var(--muted); }
+
+/* Sections */
+section { padding: 88px 0; }
+section.alt { background: var(--bg2); }
+h2 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -0.02em; text-align: center; }
+.lead { text-align: center; color: var(--muted); max-width: 560px; margin: 14px auto 52px; font-size: 17px; }
+
+/* Features grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 28px;
+  transition: transform .15s, border-color .15s;
+}
+.card:hover { transform: translateY(-3px); border-color: rgba(99,91,255,0.4); }
+.card .emoji { font-size: 28px; }
+.card h3 { font-size: 18px; margin: 14px 0 8px; }
+.card p { font-size: 14.5px; color: var(--muted); }
+
+/* Steps */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; counter-reset: step; }
+.step { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 28px; }
+.step .num {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--grad);
+  display: flex; align-items: center; justify-content: center; font-weight: 700; margin-bottom: 16px;
+}
+.step h3 { font-size: 17px; margin-bottom: 8px; }
+.step p { font-size: 14.5px; color: var(--muted); }
+
+/* FAQ */
+.faq { max-width: 720px; margin: 0 auto; }
+details {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 18px 22px; margin-bottom: 12px;
+}
+summary { cursor: pointer; font-weight: 600; font-size: 16px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+summary::after { content: "+"; color: var(--teal); font-size: 20px; font-weight: 400; }
+details[open] summary::after { content: "–"; }
+details p { margin-top: 12px; color: var(--muted); font-size: 15px; }
+details code { background: var(--bg2); padding: 2px 7px; border-radius: 6px; font-size: 13px; color: var(--teal); }
+
+/* Download */
+#download { text-align: center; }
+#download .ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 36px; }
+.gatekeeper {
+  max-width: 640px; margin: 36px auto 0; padding: 20px 26px; text-align: left;
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  font-size: 14.5px; color: var(--muted);
+}
+.gatekeeper strong { color: var(--text); }
+.gatekeeper code { background: var(--bg2); padding: 2px 7px; border-radius: 6px; font-size: 13px; color: var(--teal); }
+
+/* Footer */
+footer { border-top: 1px solid var(--border); padding: 40px 0; text-align: center; color: var(--muted); font-size: 14px; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--text); }
+@media (max-width: 600px) { nav .links a:not(.btn) { display: none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#635BFF"/><stop offset="1" stop-color="#2EC4B6"/></linearGradient></defs><rect x="5" y="5" width="90" height="90" rx="22" fill="url(#lg)"/><g fill="#fff"><rect x="22" y="42" width="5" height="16" rx="2.5"/><rect x="31" y="34" width="5" height="32" rx="2.5"/><rect x="40" y="26" width="5" height="48" rx="2.5"/><rect x="49" y="38" width="5" height="24" rx="2.5"/><rect x="58" y="22" width="5" height="56" rx="2.5"/><rect x="67" y="32" width="5" height="36" rx="2.5"/><rect x="76" y="44" width="5" height="12" rx="2.5"/></g></svg>
+      VoxType
+    </a>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/psyk3-cyber/VoxType">GitHub</a>
+      <a class="btn" href="#download">Download</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <svg class="icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#635BFF"/><stop offset="1" stop-color="#2EC4B6"/></linearGradient></defs><rect x="5" y="5" width="90" height="90" rx="22" fill="url(#hg)"/><g fill="#fff"><rect x="22" y="42" width="5" height="16" rx="2.5"/><rect x="31" y="34" width="5" height="32" rx="2.5"/><rect x="40" y="26" width="5" height="48" rx="2.5"/><rect x="49" y="38" width="5" height="24" rx="2.5"/><rect x="58" y="22" width="5" height="56" rx="2.5"/><rect x="67" y="32" width="5" height="36" rx="2.5"/><rect x="76" y="44" width="5" height="12" rx="2.5"/></g></svg>
+    <h1>Don't type it.<br><span class="grad">Just say it.</span></h1>
+    <p class="sub">VoxType turns your voice into polished text in any Mac app. Hold a key, speak naturally, release — done. Free, open source, and private by design.</p>
+    <div class="ctas">
+      <a class="btn" href="#download">Download for macOS</a>
+      <a class="btn ghost" href="https://github.com/psyk3-cyber/VoxType">View on GitHub</a>
+    </div>
+    <p class="fineprint">macOS 13+ · Apple Silicon &amp; Intel · No account · No subscription</p>
+
+    <div class="demo">
+      <div class="row"><span class="key">hold fn</span><span>Push-to-talk — speak while holding, release to insert.</span></div>
+      <div class="row"><span class="key">fn fn</span><span>Double-tap for hands-free mode. Tap again to finish.</span></div>
+      <div class="row"><span class="key">fn + ⌃</span><span>Command Mode — edit selected text or generate new text by voice.</span></div>
+      <div class="row"><span class="key">esc</span><span>Cancel a recording anytime.</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <h2>Everything you need to write 3× faster</h2>
+    <p class="lead">Works everywhere you type — email, Slack, browsers, code editors, documents.</p>
+    <div class="grid">
+      <div class="card"><div class="emoji">⚡️</div><h3>Speak into any app</h3><p>VoxType inserts text right at your cursor in whatever app is frontmost. No window switching, no copy-paste.</p></div>
+      <div class="card"><div class="emoji">✨</div><h3>Auto-polish</h3><p>Filler words removed, sentences capitalized, punctuation added automatically. Say "press enter" to submit.</p></div>
+      <div class="card"><div class="emoji">🪄</div><h3>Command Mode</h3><p>Select text, hold fn+Ctrl, and say "make this more formal" or "translate to Spanish." Or generate text from scratch.</p></div>
+      <div class="card"><div class="emoji">🤖</div><h3>AI Auto-Edits (optional)</h3><p>Plug in your own OpenAI key and an LLM rewrites your rambling into clean prose. Entirely optional.</p></div>
+      <div class="card"><div class="emoji">📚</div><h3>Dictionary &amp; snippets</h3><p>Teach it names and jargon so they're always spelled right. Say a cue like "my email" to expand full snippets.</p></div>
+      <div class="card"><div class="emoji">🌍</div><h3>14 languages</h3><p>Dictate in English, Spanish, French, German, Japanese, Chinese, Hindi, Arabic, and more.</p></div>
+      <div class="card"><div class="emoji">🔒</div><h3>Private by design</h3><p>Uses Apple's speech recognition — with an on-device option so audio never leaves your Mac. No accounts, no telemetry.</p></div>
+      <div class="card"><div class="emoji">🧾</div><h3>History</h3><p>Every dictation saved locally so you can copy past ones. Stored only on your Mac, clearable anytime.</p></div>
+      <div class="card"><div class="emoji">🆓</div><h3>Free &amp; open source</h3><p>No subscription, no word limits, no upsells. Read the code, build it yourself, make it yours.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="alt">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="lead">From install to first dictation in under two minutes.</p>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><h3>Install</h3><p>Download the DMG, drag VoxType to Applications, and open it. It lives quietly in your menu bar.</p></div>
+      <div class="step"><div class="num">2</div><h3>Grant permissions</h3><p>Allow Microphone, Speech Recognition, and Accessibility — the onboarding window walks you through it.</p></div>
+      <div class="step"><div class="num">3</div><h3>Hold fn &amp; speak</h3><p>Click into any text field, hold fn, and talk. A small HUD shows your words live as you speak.</p></div>
+      <div class="step"><div class="num">4</div><h3>Release</h3><p>Let go and polished text appears at your cursor. That's it — now go write that email.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2>Download VoxType</h2>
+    <p class="lead">Free forever. macOS 13 Ventura or later.</p>
+    <div class="ctas">
+      <a class="btn" href="https://github.com/psyk3-cyber/VoxType/releases/latest/download/VoxType-1.0.0.dmg">Download DMG (v1.0.0)</a>
+      <a class="btn ghost" href="https://github.com/psyk3-cyber/VoxType#build-from-source">Build from source</a>
+    </div>
+    <div class="gatekeeper">
+      <strong>First launch:</strong> VoxType isn't notarized by Apple (it's a free community app), so macOS will warn you.
+      Right-click <strong>VoxType.app</strong> → <strong>Open</strong> → <strong>Open</strong>. You only do this once.
+      Or in Terminal: <code>xattr -dr com.apple.quarantine /Applications/VoxType.app</code>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="alt">
+  <div class="wrap">
+    <h2>FAQ</h2>
+    <p class="lead">Quick answers to common questions.</p>
+    <div class="faq">
+      <details>
+        <summary>Is VoxType really free?</summary>
+        <p>Yes. It's open source (MIT). No account, no subscription, no word limits. The optional AI features use your own OpenAI API key, so you pay OpenAI directly only for what you use — everything else costs nothing.</p>
+      </details>
+      <details>
+        <summary>Where does my audio go?</summary>
+        <p>To Apple's speech recognition service, the same one built into macOS — or nowhere at all if you enable "prefer on-device recognition" in Settings. VoxType has no servers and collects nothing. Transcripts stay in a local file on your Mac.</p>
+      </details>
+      <details>
+        <summary>Why does it need Accessibility permission?</summary>
+        <p>Two reasons: to detect the fn key being held anywhere in macOS, and to insert text into the app you're using. Both happen entirely on your Mac.</p>
+      </details>
+      <details>
+        <summary>The fn key opens the emoji picker — help?</summary>
+        <p>Go to System Settings → Keyboard → "Press 🌐 key to" and choose <strong>Do Nothing</strong>. You can also switch the trigger to Right ⌘ or Right ⌥ in VoxType's Settings.</p>
+      </details>
+      <details>
+        <summary>What's Command Mode?</summary>
+        <p>Hold fn+Ctrl and speak an instruction. If text is selected, VoxType rewrites it ("fix the grammar," "make it shorter"). If nothing is selected, it generates new text ("write a polite decline to this invite"). Requires an OpenAI API key in Settings → AI.</p>
+      </details>
+      <details>
+        <summary>How is this different from macOS built-in dictation?</summary>
+        <p>VoxType works with a hold-to-talk key in any app, auto-removes filler words, expands snippets, enforces your custom dictionary, supports voice commands like "press enter," and adds AI-powered editing. Built-in dictation does none of that.</p>
+      </details>
+      <details>
+        <summary>Can I contribute?</summary>
+        <p>Please do! It's a small, readable Swift codebase (~2,000 lines, no dependencies). Open issues and PRs on GitHub.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>VoxType — free, open-source voice typing for macOS.</p>
+    <p style="margin-top:8px"><a href="https://github.com/psyk3-cyber/VoxType">GitHub</a> · <a href="https://github.com/psyk3-cyber/VoxType/issues">Report an issue</a> · MIT License</p>
+  </div>
+</footer>
+
+</body>
+</html>
