@@ -5,6 +5,7 @@ import CoreGraphics
 /// - Hold trigger key (default: fn)          → push-to-talk dictation
 /// - Double-tap trigger key                  → hands-free dictation (tap again to finish)
 /// - Hold trigger + Ctrl                     → Command Mode
+/// - Hold trigger + Option                   → Prompt Mode
 /// - Esc                                     → cancel
 final class HotkeyManager {
 
@@ -112,15 +113,34 @@ final class HotkeyManager {
             return
         }
 
+        // Option added while dictating → upgrade to Prompt Mode.
+        // (Right Option is skipped when it's the trigger key itself.)
+        if (keyCode == 58 || (keyCode == 61 && trigger != .rightOption)),
+           flags.contains(.maskAlternate),
+           dictation?.isRecording == true {
+            DispatchQueue.main.async { [weak self] in
+                self?.dictation?.upgradeToPromptMode()
+            }
+            return
+        }
+
         guard keyCode == trigger.keyCode else { return }
         let isDown = flags.contains(trigger.flagMask)
+
+        // Detect a held Option without being fooled by the trigger key
+        // itself when the trigger IS Right Option (device bit 0x0020 =
+        // left Option only).
+        let optionHeld: Bool = (trigger == .rightOption)
+            ? flags.contains(CGEventFlags(rawValue: 0x0020))
+            : flags.contains(.maskAlternate)
 
         if isDown && !triggerIsDown {
             triggerIsDown = true
             triggerDownAt = Date()
             startedHandsFreeOnThisPress = false
             DispatchQueue.main.async { [weak self] in
-                self?.triggerPressed(withControl: flags.contains(.maskControl))
+                self?.triggerPressed(withControl: flags.contains(.maskControl),
+                                     withOption: optionHeld)
             }
         } else if !isDown && triggerIsDown {
             triggerIsDown = false
@@ -133,7 +153,7 @@ final class HotkeyManager {
 
     // MARK: - Gesture logic (main thread)
 
-    private func triggerPressed(withControl: Bool) {
+    private func triggerPressed(withControl: Bool, withOption: Bool) {
         guard let dictation else { return }
 
         // A press while hands-free is active ends the session.
@@ -151,8 +171,11 @@ final class HotkeyManager {
             return
         }
 
-        // Normal push-to-talk (or straight into Command Mode with Ctrl).
-        dictation.startRecording(mode: withControl ? .command : .dictation, handsFree: false)
+        // Normal push-to-talk, or straight into Command Mode (Ctrl) /
+        // Prompt Mode (Option).
+        let mode: DictationController.Mode =
+            withControl ? .command : (withOption ? .prompt : .dictation)
+        dictation.startRecording(mode: mode, handsFree: false)
     }
 
     private func triggerReleased(heldFor: TimeInterval) {
@@ -169,10 +192,10 @@ final class HotkeyManager {
         if heldFor < quickTapMax {
             // Too quick to be dictation — treat as first tap of a
             // potential double-tap and discard the audio. A quick
-            // Command Mode tap should NOT arm the double-tap gesture.
-            let wasCommand = dictation.isCommandRecording
+            // Command/Prompt Mode tap should NOT arm the double-tap gesture.
+            let wasModified = dictation.isModifierRecording
             dictation.abortQuietly()
-            if !wasCommand {
+            if !wasModified {
                 lastQuickTapAt = Date()
             }
         } else {
