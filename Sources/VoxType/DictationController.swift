@@ -8,6 +8,7 @@ final class DictationController: ObservableObject {
     enum Mode {
         case dictation
         case command
+        case prompt
     }
 
     enum State {
@@ -37,8 +38,10 @@ final class DictationController: ObservableObject {
         return true
     }
 
-    var isCommandRecording: Bool {
-        if case .recording(.command) = state { return true }
+    /// Recording in a modified mode (Command or Prompt) rather than
+    /// plain dictation.
+    var isModifierRecording: Bool {
+        if case .recording(let mode) = state { return mode != .dictation }
         return false
     }
 
@@ -80,7 +83,12 @@ final class DictationController: ObservableObject {
         state = .recording(mode)
         onStateChange?()
 
-        let hudMode: HUDMode = (mode == .command) ? .command : (handsFree ? .handsFree : .dictation)
+        let hudMode: HUDMode
+        switch mode {
+        case .command: hudMode = .command
+        case .prompt: hudMode = .prompt
+        case .dictation: hudMode = handsFree ? .handsFree : .dictation
+        }
         hud.showRecording(mode: hudMode)
         playSound("Pop")
 
@@ -101,12 +109,22 @@ final class DictationController: ObservableObject {
         onStateChange?()
     }
 
+    /// Upgrade an in-progress dictation to Prompt Mode (Option added
+    /// right after the trigger went down).
+    func upgradeToPromptMode() {
+        guard case .recording(.dictation) = state,
+              Date().timeIntervalSince(recordingStartedAt) < 0.6 else { return }
+        state = .recording(.prompt)
+        hud.showRecording(mode: .prompt)
+        onStateChange?()
+    }
+
     func finishRecording() {
         guard case .recording(let mode) = state else { return }
         sessionLimitTimer?.invalidate()
         state = .processing
         onStateChange?()
-        hud.showProcessing()
+        hud.showProcessing(label: mode == .prompt ? "Composing prompt…" : "Polishing…")
         playSound("Bottle")
 
         let frontApp = NSWorkspace.shared.frontmostApplication?.localizedName ?? "Unknown"
@@ -124,6 +142,8 @@ final class DictationController: ObservableObject {
                 self.handleDictation(trimmed, frontApp: frontApp)
             case .command:
                 self.handleCommand(trimmed)
+            case .prompt:
+                self.handlePrompt(trimmed, frontApp: frontApp)
             }
         }
     }
@@ -189,6 +209,16 @@ final class DictationController: ObservableObject {
             HistoryStore.shared.add(text: text, appName: frontApp)
             self.playSound("Tink")
             self.becomeIdle()
+        }
+    }
+
+    // MARK: - Prompt Mode pipeline
+
+    /// Speak naturally → a structured AI prompt is inserted at the cursor.
+    private func handlePrompt(_ transcript: String, frontApp: String) {
+        Task { @MainActor in
+            let prompt = await PromptComposer.compose(transcript)
+            self.deliver(prompt, pressEnter: false, frontApp: frontApp)
         }
     }
 
