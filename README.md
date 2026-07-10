@@ -2,9 +2,9 @@
 
 Free, open-source voice typing for macOS: hold a key, speak, and polished text appears in whatever app you're using. Menu-bar only, works in every text field on your Mac. Inspired by [Wispr Flow](https://wisprflow.ai) — no account, no subscription, private by design.
 
-**Website:** https://psyk3.com/ · **Download DMG:** [latest release](https://github.com/psyk3-cyber/VoxType/releases/latest)
+**Website:** https://psyk3.com · **Download DMG:** [latest release](https://github.com/psyk3-cyber/VoxType/releases/latest)
 
-> **First launch (DMG users):** VoxType isn't notarized. Right-click **VoxType.app → Open → Open** once, or run `xattr -dr com.apple.quarantine /Applications/VoxType.app`.
+> **First launch (DMG users):** VoxType isn't notarized, so macOS says it "could not verify VoxType is free of malware". Click **Done**, then open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** (once). Or run `xattr -dr com.apple.quarantine /Applications/VoxType.app`.
 
 ## Build from source
 
@@ -36,10 +36,13 @@ Also set **System Settings → Keyboard → "Press 🌐 key to" → Do Nothing**
 | Dictate (push-to-talk) | **Hold fn**, speak, release — text is inserted at your cursor |
 | Hands-free dictation | **Double-tap fn** to start, tap fn to finish (20-min cap) |
 | Command Mode | **Hold fn + ⌃ Control**, speak an instruction |
+| Prompt Mode | **Hold fn + ⌥ Option**, talk through your idea naturally |
 | Cancel | **Esc** while recording |
 | Press Enter by voice | End your dictation with *"press enter"* |
 
 **Command Mode** (requires an OpenAI API key in Settings → AI): highlight text and say "make this more concise" / "translate to Spanish" / "turn this into bullet points" — the selection is replaced. With nothing selected, your answer is generated inline at the cursor.
+
+**Prompt Mode** (free, no API key needed): ramble naturally about what you want and VoxType rewrites it into a clear, structured AI prompt before inserting it — perfect for ChatGPT, Claude, or Cursor. On macOS 26+ with Apple Intelligence it uses Apple's free on-device model (private, offline). Otherwise it falls back to your OpenAI key if set, or a local formatter.
 
 ## Features
 
@@ -59,11 +62,12 @@ Also set **System Settings → Keyboard → "Press 🌐 key to" → Do Nothing**
 | File | Role |
 |---|---|
 | `main.swift` | App bootstrap (menu-bar-only accessory app) |
-| `HotkeyManager.swift` | CGEvent tap: fn hold / double-tap / +Ctrl / Esc gestures |
+| `HotkeyManager.swift` | CGEvent tap: fn hold / double-tap / +Ctrl / +Option / Esc gestures |
 | `DictationController.swift` | State machine: record → transcribe → polish → insert |
 | `TranscriptionService.swift` | AVAudioEngine + SFSpeechRecognizer streaming |
 | `TextPolisher.swift` | Local cleanup: fillers, dictionary, snippets, "press enter" |
 | `LLMService.swift` | OpenAI client for AI Auto-Edits + Command Mode |
+| `PromptComposer.swift` | Prompt Mode: Apple on-device model → OpenAI → rule-based |
 | `TextInserter.swift` | Clipboard-paste insertion with clipboard restore |
 | `OverlayHUD.swift` | Floating waveform/transcript pill (SwiftUI in NSPanel) |
 | `StatusBarController.swift` | Menu bar item + menu |
