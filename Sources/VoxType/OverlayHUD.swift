@@ -12,6 +12,7 @@ enum HUDMode {
     case dictation
     case handsFree
     case command
+    case prompt
 }
 
 final class HUDModel: ObservableObject {
@@ -19,6 +20,7 @@ final class HUDModel: ObservableObject {
     @Published var mode: HUDMode = .dictation
     @Published var transcript: String = ""
     @Published var level: Float = 0
+    @Published var processingLabel: String = "Polishing…"
 }
 
 /// The floating pill that appears at the bottom of the screen while
@@ -37,8 +39,9 @@ final class HUDController {
         show()
     }
 
-    func showProcessing() {
+    func showProcessing(label: String = "Polishing…") {
         hideWorkItem?.cancel()
+        model.processingLabel = label
         model.state = .processing
         show()
     }
@@ -134,14 +137,13 @@ struct HUDView: View {
             VStack(spacing: 8) {
                 HStack(spacing: 10) {
                     Circle()
-                        .fill(model.mode == .command ? Color.purple : Color.red)
+                        .fill(accentColor)
                         .frame(width: 9, height: 9)
                     Text(headerText)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.white.opacity(0.75))
                     Spacer(minLength: 0)
-                    WaveformView(level: model.level,
-                                 color: model.mode == .command ? .purple : Color(red: 1, green: 0.4, blue: 0.4))
+                    WaveformView(level: model.level, color: waveColor)
                         .frame(width: 110, height: 22)
                 }
                 if !model.transcript.isEmpty {
@@ -158,7 +160,7 @@ struct HUDView: View {
             HStack(spacing: 10) {
                 ProgressView()
                     .controlSize(.small)
-                Text("Polishing…")
+                Text(model.processingLabel)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white)
             }
@@ -176,6 +178,23 @@ struct HUDView: View {
         case .dictation: return "Listening — release to insert · esc to cancel"
         case .handsFree: return "Hands-free — tap shortcut to finish · esc to cancel"
         case .command: return "Command Mode — speak an instruction"
+        case .prompt: return "Prompt Mode — talk through your idea naturally"
+        }
+    }
+
+    private var accentColor: Color {
+        switch model.mode {
+        case .command: return .purple
+        case .prompt: return .cyan
+        default: return .red
+        }
+    }
+
+    private var waveColor: Color {
+        switch model.mode {
+        case .command: return .purple
+        case .prompt: return .cyan
+        default: return Color(red: 1, green: 0.4, blue: 0.4)
         }
     }
 }
