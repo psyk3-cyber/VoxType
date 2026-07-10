@@ -37,7 +37,7 @@ struct GeneralTab: View {
                     Text(key.displayName).tag(key)
                 }
             }
-            Text("Hold to dictate. Double-tap for hands-free. Hold with ⌃ Control for Command Mode. Esc cancels.")
+            Text("Hold to dictate. Double-tap for hands-free. Hold with ⌃ Control for Command Mode. Hold with ⌥ Option for Prompt Mode — speak naturally and a structured AI prompt is inserted. Esc cancels.")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
